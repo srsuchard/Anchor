@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+
+# Xcode — per-user state (window layout, breakpoints, selected scheme)
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Build products
+build/
+DerivedData/
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.hmap
+*.moved-aside
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods / Carthage — uncomment if either is ever adopted
+# Pods/
+# Carthage/Build/
+
+# Signing material — must never be committed
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.cer
