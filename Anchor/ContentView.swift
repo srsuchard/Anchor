@@ -1,120 +1,221 @@
+import FamilyControls
 import SwiftUI
 
-/// Test harness for the puck pairing + verification flow.
-///
-/// This is throwaway UI — its only job is to prove the NFC half works on real
-/// hardware before any of the FamilyControls blocking logic exists. The
-/// pair/verify logic here is the same shape the real unlock flow will use.
 struct ContentView: View {
 
-    /// Survives app restarts, so you can pair once and verify on a later launch.
+    /// The puck's UID. Survives restarts — pairing is a one-time act.
     @AppStorage("pairedPuckUID") private var pairedPuckUID: String = ""
 
+    @StateObject private var blocker = FocusBlocker()
+
     @State private var reader = AnchorNFCReader()
-    @State private var lastScannedUID: String?
+    @State private var isPickerPresented = false
     @State private var status: Status = .idle
 
-    enum Status {
+    enum Status: Equatable {
         case idle
-        case match
-        case mismatch
+        case wrongPuck
         case error(String)
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-
-            Text("Anchor")
-                .font(.largeTitle.bold())
-
-            resultCard
-
-            VStack(spacing: 12) {
-                Button(action: scan) {
-                    Text("Scan Puck")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-
-                if let uid = lastScannedUID, uid != pairedPuckUID {
-                    Button("Pair This Puck") {
-                        pairedPuckUID = uid
-                        status = .match
+        NavigationStack {
+            Group {
+                switch blocker.authorizationStatus {
+                case .approved:
+                    if pairedPuckUID.isEmpty {
+                        pairingView
+                    } else if blocker.isBlocking {
+                        blockingView
+                    } else {
+                        setupView
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .frame(maxWidth: .infinity)
-                }
-
-                if !pairedPuckUID.isEmpty {
-                    Button("Forget Paired Puck", role: .destructive) {
-                        pairedPuckUID = ""
-                        lastScannedUID = nil
-                        status = .idle
-                    }
-                    .font(.footnote)
+                default:
+                    authorizationView
                 }
             }
+            .padding(28)
+            .navigationTitle("Anchor")
         }
-        .padding(28)
     }
 
-    @ViewBuilder
-    private var resultCard: some View {
-        VStack(spacing: 8) {
-            switch status {
-            case .idle:
-                Text(pairedPuckUID.isEmpty ? "No puck paired yet" : "Ready")
-                    .foregroundStyle(.secondary)
-            case .match:
-                Text("✅ Correct puck")
-                    .foregroundStyle(.green)
-            case .mismatch:
-                Text("❌ Wrong puck")
+    // MARK: - Step 1: Screen Time permission
+
+    private var authorizationView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "hourglass")
+                .font(.system(size: 56))
+                .foregroundStyle(.tint)
+
+            Text("Anchor needs Screen Time access")
+                .font(.title2.bold())
+                .multilineTextAlignment(.center)
+
+            Text("This is what lets Anchor block apps. Without it, nothing can be enforced.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            if let error = blocker.authorizationError {
+                Text(error)
+                    .font(.footnote)
                     .foregroundStyle(.red)
-            case .error(let message):
-                Text(message)
-                    .foregroundStyle(.orange)
                     .multilineTextAlignment(.center)
             }
 
-            if let uid = lastScannedUID {
-                LabeledContent("Scanned", value: uid)
-                    .font(.system(.footnote, design: .monospaced))
+            Button("Grant Access") {
+                Task { await blocker.requestAuthorization() }
             }
-            if !pairedPuckUID.isEmpty {
-                LabeledContent("Paired", value: pairedPuckUID)
-                    .font(.system(.footnote, design: .monospaced))
-            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            Spacer()
         }
-        .frame(maxWidth: .infinity, minHeight: 120)
-        .padding()
-        .background(Color(.secondarySystemBackground), in: .rect(cornerRadius: 16))
     }
 
-    private func scan() {
-        reader.beginScan { result in
-            switch result {
-            case .success(let uid):
-                lastScannedUID = uid
-                if pairedPuckUID.isEmpty {
-                    status = .idle          // nothing to compare against yet
-                } else {
-                    status = uid == pairedPuckUID ? .match : .mismatch
-                }
+    // MARK: - Step 2: Pair a puck
 
-            case .failure(let error):
-                lastScannedUID = nil
-                switch error {
-                case .cancelled:
-                    status = .idle
-                case .unavailable:
-                    status = .error("This device can't read NFC tags.")
-                case .noTagFound:
-                    status = .error("Didn't catch that tag — try again.")
-                case .connectionFailed, .session:
-                    status = .error("Scan failed. Try again.")
+    private var pairingView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "wave.3.right.circle")
+                .font(.system(size: 56))
+                .foregroundStyle(.tint)
+
+            Text("Pair your puck")
+                .font(.title2.bold())
+
+            Text("Hold your phone to the puck. Anchor remembers it as the only thing that can unlock a focus session.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            statusText
+
+            Button("Scan Puck") { scan(intent: .pair) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            Spacer()
+        }
+    }
+
+    // MARK: - Step 3: Choose apps and start
+
+    private var setupView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "shield")
+                .font(.system(size: 56))
+                .foregroundStyle(.tint)
+
+            Text(blocker.hasSelection ? "Ready to focus" : "Choose what to block")
+                .font(.title2.bold())
+
+            if blocker.hasSelection {
+                Text("\(blocker.selection.applicationTokens.count) apps, \(blocker.selection.categoryTokens.count) categories")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            statusText
+
+            Button(blocker.hasSelection ? "Edit Selection" : "Choose Apps") {
+                isPickerPresented = true
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+
+            Button("Start Focus") { blocker.startBlocking() }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(!blocker.hasSelection)
+
+            Button("Forget Paired Puck", role: .destructive) {
+                pairedPuckUID = ""
+                status = .idle
+            }
+            .font(.footnote)
+            Spacer()
+        }
+        .familyActivityPicker(isPresented: $isPickerPresented, selection: $blocker.selection)
+    }
+
+    // MARK: - Step 4: Blocked — puck is the only way out
+
+    private var blockingView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "lock.fill")
+                .font(.system(size: 56))
+                .foregroundStyle(.tint)
+
+            Text("Focus is on")
+                .font(.title2.bold())
+
+            Text("Tap your Anchor puck to unlock.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            statusText
+
+            Button("Tap Puck to Unlock") { scan(intent: .unlock) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            Spacer()
+        }
+    }
+
+    @ViewBuilder
+    private var statusText: some View {
+        switch status {
+        case .idle:
+            EmptyView()
+        case .wrongPuck:
+            Text("❌ That's not your puck.")
+                .foregroundStyle(.red)
+        case .error(let message):
+            Text(message)
+                .foregroundStyle(.orange)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    // MARK: - Scanning
+
+    private enum ScanIntent {
+        case pair
+        case unlock
+    }
+
+    private func scan(intent: ScanIntent) {
+        reader.beginScan { result in
+            Task { @MainActor in
+                switch result {
+                case .success(let uid):
+                    switch intent {
+                    case .pair:
+                        pairedPuckUID = uid
+                        status = .idle
+                    case .unlock:
+                        if uid == pairedPuckUID {
+                            blocker.stopBlocking()
+                            status = .idle
+                        } else {
+                            status = .wrongPuck
+                        }
+                    }
+
+                case .failure(let error):
+                    switch error {
+                    case .cancelled:
+                        status = .idle
+                    case .unavailable:
+                        status = .error("This device can't read NFC tags.")
+                    case .noTagFound:
+                        status = .error("Didn't catch that tag — try again.")
+                    case .connectionFailed, .session:
+                        status = .error("Scan failed. Try again.")
+                    }
                 }
             }
         }
