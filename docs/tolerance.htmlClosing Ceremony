@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tolerance Selector — Anchor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #15171B;
+  --bg-panel: #1C1F24;
+  --bg-panel-raised: #22262C;
+  --ink: #ECE8DF;
+  --ink-dim: #9AA0AA;
+  --ink-faint: #5B616B;
+  --brass: #C9A227;
+  --brass-bright: #E0BC3E;
+  --brass-dim: #4A3F17;
+  --oxide: #9A4A34;
+  --line: #2C3036;
+  --go: #6E8F52;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+a.back {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  color: var(--ink-dim);
+  text-decoration: none;
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.02em;
+}
+a.back:hover { color: var(--brass); }
+
+.card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 32px 30px 28px;
+}
+
+.eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 6px;
+}
+
+h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+.sub {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  margin-bottom: 26px;
+}
+
+label.field-label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 8px;
+}
+
+.select-wrap { position: relative; margin-bottom: 20px; }
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  background: var(--bg-panel-raised);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px 40px 12px 14px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+select:focus {
+  outline: none;
+  border-color: var(--brass);
+  box-shadow: 0 0 0 1px var(--brass);
+}
+
+.select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--ink-dim);
+  border-bottom: 2px solid var(--ink-dim);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.toggle-row { display: flex; gap: 8px; margin-bottom: 24px; }
+
+.toggle-btn {
+  flex: 1;
+  background: var(--bg-panel-raised);
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  padding: 9px 6px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.toggle-btn.active {
+  color: var(--brass-bright);
+  border-color: var(--brass);
+  background: var(--brass-dim);
+}
+
+.readout {
+  background: var(--bg-panel-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 18px 18px 16px;
+  margin-bottom: 20px;
+}
+
+.readout-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.readout-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.readout-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--brass-bright);
+  letter-spacing: -0.01em;
+}
+.readout-value span {
+  font-size: 15px;
+  color: var(--ink-dim);
+  font-weight: 500;
+  margin-left: 3px;
+}
+
+.gauge { width: 100%; height: 74px; display: block; }
+
+.gauge-caption {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-faint);
+  text-align: center;
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+.note {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+  margin-bottom: 24px;
+}
+.note strong { color: var(--ink); font-weight: 600; }
+
+.go-btn {
+  width: 100%;
+  background: var(--brass);
+  color: #15130A;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: filter 0.15s;
+}
+.go-btn:hover { filter: brightness(1.08); }
+.go-btn:active { filter: brightness(0.95); }
+.go-btn.confirmed { background: var(--go); }
+
+.go-btn:disabled {
+  background: var(--bg-panel-raised);
+  color: var(--ink-faint);
+  border: 1px solid var(--line);
+  cursor: not-allowed;
+}
+.go-btn:disabled:hover { filter: none; }
+</style>
+</head>
+<body>
+
+<a class="back" href="index.html">← Anchor</a>
+
+<div class="card">
+  <p class="eyebrow">Fit calibration</p>
+  <h1>Tolerance Selector</h1>
+  <p class="sub">Pick your printer and material to get the right fit clearance for the puck's press-fit lid, then download the matching file.</p>
+
+  <label class="field-label" for="printer">Printer preset</label>
+  <div class="select-wrap">
+    <select id="printer">
+      <option value="0.20" data-name="Prusa MK3 / MK4">Prusa (MK3 / MK4)</option>
+      <option value="0.175" data-name="Bambu Lab X1 / P1 / A1">Bambu Lab (X1 / P1 / A1)</option>
+      <option value="0.275" data-name="Creality Ender / K1 series">Creality (Ender / K1 series)</option>
+      <option value="0.125" data-name="Voron / tuned high-precision">Voron / high-precision build</option>
+      <option value="0.30" data-name="Not sure / generic FDM" selected>Not sure / generic FDM</option>
+    </select>
+  </div>
+
+  <label class="field-label">Filament</label>
+  <div class="toggle-row">
+    <button class="toggle-btn active" data-add="0" id="btn-pla">PLA</button>
+    <button class="toggle-btn" data-add="0.075" id="btn-other">PETG / ABS</button>
+  </div>
+
+  <div class="readout">
+    <div class="readout-top">
+      <span class="readout-label" id="printer-name">Not sure / generic FDM</span>
+      <span class="readout-value" id="value"></span>
+    </div>
+    <svg class="gauge" viewBox="0 0 400 74" id="gaugeSvg">
+      <rect x="0" y="20" width="176" height="34" fill="var(--line)" />
+      <rect x="224" y="20" width="176" height="34" fill="var(--line)" />
+      <rect id="gapFill" x="176" y="20" width="48" height="34" fill="var(--brass-dim)" />
+      <line id="gapLineL" x1="176" y1="10" x2="176" y2="64" stroke="var(--brass)" stroke-width="1.5" />
+      <line id="gapLineR" x1="224" y1="10" x2="224" y2="64" stroke="var(--brass)" stroke-width="1.5" />
+    </svg>
+    <p class="gauge-caption">clearance, per side (not to scale)</p>
+  </div>
+
+  <p class="note">
+    This is the gap left on <strong>each side</strong> of the lid's press-fit joint. Values are community-tested defaults for PLA at standard settings — a starting point, not a spec.
+  </p>
+
+  <button class="go-btn" id="goBtn">Apply &amp; continue to download</button>
+</div>
+
+<script>
+  // Drop each preset's file URL in here as it becomes available.
+  // Leave it as an empty string '' for any preset that isn't ready yet —
+  // the button will show "Coming soon" and stay disabled until you fill it in.
+  const FILE_LINKS = {
+    '0.20':   '',   // Prusa (MK3 / MK4)
+    '0.175':  '',   // Bambu Lab (X1 / P1 / A1)
+    '0.275':  '',   // Creality (Ender / K1 series)
+    '0.125':  '',   // Voron / high-precision build
+    '0.30':   ''    // Not sure / generic FDM
+  };
+
+  const printerSelect = document.getElementById('printer');
+  const btnPla = document.getElementById('btn-pla');
+  const btnOther = document.getElementById('btn-other');
+  const valueEl = document.getElementById('value');
+  const nameEl = document.getElementById('printer-name');
+  const goBtn = document.getElementById('goBtn');
+  const gapFill = document.getElementById('gapFill');
+  const gapLineL = document.getElementById('gapLineL');
+  const gapLineR = document.getElementById('gapLineR');
+
+  let materialAdd = 0;
+
+  function setMaterial(btn, add) {
+    materialAdd = add;
+    [btnPla, btnOther].forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  btnPla.addEventListener('click', () => setMaterial(btnPla, 0));
+  btnOther.addEventListener('click', () => setMaterial(btnOther, 0.075));
+  printerSelect.addEventListener('change', render);
+
+  function render() {
+    const opt = printerSelect.options[printerSelect.selectedIndex];
+    const base = parseFloat(opt.value);
+    const total = base + materialAdd;
+
+    valueEl.innerHTML = total.toFixed(3).replace(/0$/, '') + '<span>mm</span>';
+    nameEl.textContent = opt.dataset.name;
+
+    const px = Math.max(20, Math.min(120, (total / 0.20) * 48));
+    const center = 200;
+    const left = center - px / 2;
+
+    gapFill.setAttribute('x', left);
+    gapFill.setAttribute('width', px);
+    gapLineL.setAttribute('x1', left);
+    gapLineL.setAttribute('x2', left);
+    gapLineR.setAttribute('x1', left + px);
+    gapLineR.setAttribute('x2', left + px);
+
+    document.querySelectorAll('.gauge rect[fill="var(--line)"]').forEach((r, i) => {
+      if (i === 0) { r.setAttribute('width', left); }
+      else { r.setAttribute('x', left + px); r.setAttribute('width', 400 - (left + px)); }
+    });
+
+    goBtn.classList.remove('confirmed');
+
+    const link = FILE_LINKS[opt.value];
+    if (link) {
+      goBtn.disabled = false;
+      goBtn.textContent = 'Download for ' + opt.dataset.name;
+    } else {
+      goBtn.disabled = true;
+      goBtn.textContent = 'Coming soon — ' + opt.dataset.name;
+    }
+  }
+
+  goBtn.addEventListener('click', () => {
+    const opt = printerSelect.options[printerSelect.selectedIndex];
+    const link = FILE_LINKS[opt.value];
+    if (!link) return;
+
+    goBtn.classList.add('confirmed');
+    goBtn.textContent = '✓ Downloading…';
+    window.location.href = link;
+  });
+
+  render();
+</script>
+
+</body>
+</html>
