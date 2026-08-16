@@ -7,6 +7,7 @@ struct ContentView: View {
     @AppStorage("pairedPuckUID") private var pairedPuckUID: String = ""
 
     @StateObject private var blocker = FocusBlocker()
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var reader = AnchorNFCReader()
     @State private var isPickerPresented = false
@@ -36,6 +37,12 @@ struct ContentView: View {
             }
             .padding(28)
             .navigationTitle("Anchor")
+        }
+        // A scheduled session can start while Anchor is closed, so the app has
+        // to re-read shared state on every return to the foreground rather than
+        // trusting what it had in memory.
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { blocker.refreshFromSharedState() }
         }
     }
 
@@ -130,6 +137,8 @@ struct ContentView: View {
                 .controlSize(.large)
                 .disabled(!blocker.hasSelection)
 
+            scheduleSection
+
             Button("Forget Paired Puck", role: .destructive) {
                 pairedPuckUID = ""
                 status = .idle
@@ -163,6 +172,48 @@ struct ContentView: View {
                 .controlSize(.large)
             Spacer()
         }
+    }
+
+    // MARK: - Daily schedule
+
+    private var scheduleSection: some View {
+        VStack(spacing: 8) {
+            Toggle("Repeat daily", isOn: Binding(
+                get: { blocker.scheduleEnabled },
+                set: { $0 ? blocker.enableSchedule() : blocker.disableSchedule() }
+            ))
+            .disabled(!blocker.hasSelection)
+
+            HStack {
+                Picker("From", selection: $blocker.scheduleStartHour) {
+                    ForEach(0..<24, id: \.self) { Text(hourLabel($0)).tag($0) }
+                }
+                Picker("To", selection: $blocker.scheduleEndHour) {
+                    ForEach(0..<24, id: \.self) { Text(hourLabel($0)).tag($0) }
+                }
+            }
+            .pickerStyle(.menu)
+
+            if let error = blocker.scheduleError {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+            }
+
+            Text("A scheduled session ends on its own. The puck is for unlocking early.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top, 8)
+    }
+
+    private func hourLabel(_ hour: Int) -> String {
+        var components = DateComponents()
+        components.hour = hour
+        let date = Calendar.current.date(from: components) ?? Date()
+        return date.formatted(.dateTime.hour())
     }
 
     @ViewBuilder

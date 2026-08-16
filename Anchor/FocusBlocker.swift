@@ -1,39 +1,42 @@
 import Combine
+import DeviceActivity
 import FamilyControls
+import Foundation
 import ManagedSettings
-import SwiftUI
 
-/// Owns the screen-time restrictions: which apps are blocked, and whether the
-/// block is currently applied.
+/// Owns the screen-time restrictions from the app's side.
 ///
-/// The block itself is enforced by the system, not by this app. Once
-/// `ManagedSettingsStore.shield` is populated, iOS shields those apps even if
-/// Anchor is killed, backgrounded, or the phone is rebooted. Clearing the store
-/// is the *only* way to lift it from here — which is what makes the puck tap
-/// meaningful rather than decorative.
+/// The block itself is enforced by the system, not by this app. Once the shield
+/// is applied, iOS holds it even if Anchor is killed, backgrounded, or the phone
+/// is rebooted — which is what makes the puck tap meaningful rather than
+/// decorative. Scheduled sessions are applied by the monitor extension instead;
+/// both paths go through `ShieldController`.
 @MainActor
 final class FocusBlocker: ObservableObject {
 
-    /// A named store keeps Anchor's restrictions separate from any other app's.
-    private let store = ManagedSettingsStore(named: .anchor)
+    private let shields = ShieldController()
+    private let center = DeviceActivityCenter()
 
     @Published private(set) var authorizationStatus: AuthorizationStatus
     @Published private(set) var isBlocking: Bool
+    @Published var authorizationError: String?
+    @Published var scheduleError: String?
+
     @Published var selection: FamilyActivitySelection {
-        didSet { persistSelection() }
+        didSet { AnchorStore.selection = selection }
     }
 
-    /// Non-nil when the last authorization attempt failed, for display.
-    @Published var authorizationError: String?
-
-    private let defaults = UserDefaults.standard
-    private static let selectionKey = "blockedActivitySelection"
-    private static let blockingKey = "isBlocking"
+    @Published private(set) var scheduleEnabled: Bool
+    @Published var scheduleStartHour: Int { didSet { AnchorStore.scheduleStartHour = scheduleStartHour } }
+    @Published var scheduleEndHour: Int { didSet { AnchorStore.scheduleEndHour = scheduleEndHour } }
 
     init() {
         authorizationStatus = AuthorizationCenter.shared.authorizationStatus
-        isBlocking = UserDefaults.standard.bool(forKey: Self.blockingKey)
-        selection = Self.loadSelection() ?? FamilyActivitySelection()
+        isBlocking = AnchorStore.isBlocking
+        selection = AnchorStore.selection
+        scheduleEnabled = AnchorStore.scheduleEnabled
+        scheduleStartHour = AnchorStore.scheduleStartHour
+        scheduleEndHour = AnchorStore.scheduleEndHour
     }
 
     /// True once the user has picked at least one app, category, or domain.
@@ -41,6 +44,13 @@ final class FocusBlocker: ObservableObject {
         !selection.applicationTokens.isEmpty
             || !selection.categoryTokens.isEmpty
             || !selection.webDomainTokens.isEmpty
+    }
+
+    /// The monitor extension can start a session while the app is closed, so the
+    /// app re-reads shared state whenever it comes back to the foreground.
+    func refreshFromSharedState() {
+        authorizationStatus = AuthorizationCenter.shared.authorizationStatus
+        isBlocking = AnchorStore.isBlocking
     }
 
     // MARK: - Authorization
@@ -58,57 +68,56 @@ final class FocusBlocker: ObservableObject {
         authorizationStatus = AuthorizationCenter.shared.authorizationStatus
     }
 
-    // MARK: - Blocking
+    // MARK: - Manual sessions
 
-    /// Applies the shield. Takes effect immediately and survives app termination.
     func startBlocking() {
         guard hasSelection else { return }
-
-        store.shield.applications = selection.applicationTokens.isEmpty
-            ? nil
-            : selection.applicationTokens
-
-        store.shield.applicationCategories = selection.categoryTokens.isEmpty
-            ? nil
-            : .specific(selection.categoryTokens)
-
-        store.shield.webDomains = selection.webDomainTokens.isEmpty
-            ? nil
-            : selection.webDomainTokens
-
-        // Without this, the block is trivially defeated by deleting Anchor —
-        // uninstalling clears its ManagedSettingsStore along with it. Denying
-        // app removal is what makes the puck the path of least resistance.
-        store.application.denyAppRemoval = true
-
-        setBlocking(true)
+        shields.apply(selection)
+        isBlocking = true
     }
 
-    /// Lifts the shield. Call this *only* after a verified puck tap — every
-    /// other caller is a bypass, which defeats the purpose of the device.
+    /// Call this *only* after a verified puck tap — every other caller is a
+    /// bypass, which defeats the purpose of the device.
     func stopBlocking() {
-        store.clearAllSettings()
-        setBlocking(false)
+        shields.clear()
+        isBlocking = false
     }
 
-    private func setBlocking(_ value: Bool) {
-        isBlocking = value
-        defaults.set(value, forKey: Self.blockingKey)
+    // MARK: - Scheduled sessions
+
+    /// Registers the daily window with the system. From here on the monitor
+    /// extension applies and lifts the block at the boundaries, with no help
+    /// from the app.
+    func enableSchedule() {
+        guard hasSelection else { return }
+
+        let schedule = DeviceActivitySchedule(
+            intervalStart: DateComponents(hour: scheduleStartHour, minute: 0),
+            intervalEnd: DateComponents(hour: scheduleEndHour, minute: 0),
+            repeats: true
+        )
+
+        do {
+            center.stopMonitoring([.anchorSchedule])
+            try center.startMonitoring(.anchorSchedule, during: schedule)
+            setScheduleEnabled(true)
+            scheduleError = nil
+        } catch {
+            setScheduleEnabled(false)
+            scheduleError = "Couldn't set that schedule. Start and end can't be the same time."
+        }
     }
 
-    // MARK: - Persistence
-
-    private func persistSelection() {
-        guard let data = try? JSONEncoder().encode(selection) else { return }
-        defaults.set(data, forKey: Self.selectionKey)
+    /// Stops future scheduled sessions. Deliberately does not lift a block that
+    /// is already running — that still takes the puck.
+    func disableSchedule() {
+        center.stopMonitoring([.anchorSchedule])
+        setScheduleEnabled(false)
+        scheduleError = nil
     }
 
-    private static func loadSelection() -> FamilyActivitySelection? {
-        guard let data = UserDefaults.standard.data(forKey: selectionKey) else { return nil }
-        return try? JSONDecoder().decode(FamilyActivitySelection.self, from: data)
+    private func setScheduleEnabled(_ value: Bool) {
+        scheduleEnabled = value
+        AnchorStore.scheduleEnabled = value
     }
-}
-
-extension ManagedSettingsStore.Name {
-    static let anchor = Self("anchor")
 }
