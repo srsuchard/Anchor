@@ -442,6 +442,18 @@
     font-size: 0.96rem;
   }
 
+  .honesty {
+    margin-top: 24px;
+    padding: 18px 22px;
+    border-left: 2px solid var(--oxide);
+    background: var(--bg-panel);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--ink-dim);
+    font-size: 0.92rem;
+    max-width: 72ch;
+  }
+  .honesty strong { color: var(--ink); font-weight: 600; }
+
   /* ---------- how it works ---------- */
   .steps {
     margin-top: 52px;
@@ -636,7 +648,7 @@
       <div>
         <p class="eyebrow">Open-source · 3D-printed · NFC</p>
         <h1>Built to be<br><em>tapped.</em></h1>
-        <p class="lede">Anchor is a printable puck that locks distracting apps until you physically tap your phone to it again. No setting to toggle off. No app to delete. The only way out is the object in your hand.</p>
+        <p class="lede">Anchor is a printable puck that locks distracting apps until you physically tap your phone to it again. iOS won't let you delete the app mid-session. Getting back in means getting up.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#build">Get the print files</a>
           <a class="btn btn-ghost" href="#how">See how it works</a>
@@ -678,22 +690,30 @@
         <div class="problem-cell">
           <span class="tag tag-hard">Physical friction</span>
           <h3>Get up and find the puck</h3>
-          <p>Anchor's lock only lifts at the object itself. Getting around it means physically standing up, walking to where you left it, and tapping — a real pause, not a dialog box.</p>
+          <p>Anchor's lock lifts at the object. Getting back in means physically standing up, walking to where you left it, and tapping — a real pause, not a dialog box.</p>
         </div>
       </div>
+
+      <p class="honesty">
+        <strong>What it doesn't do:</strong> Anchor raises friction, it doesn't make
+        evasion impossible. Revoking its Screen Time access in Settings lifts the
+        block, and a passive tag's ID can be cloned by anyone determined enough to
+        try. It's built to beat the impulse, not a motivated attacker — and
+        anything in this category claiming otherwise is overselling.
+      </p>
     </div>
   </section>
 
   <section class="section-pad" id="how">
     <div class="wrap">
       <p class="eyebrow">How it works</p>
-      <h2 class="section-title">Three taps. One object. No account required.</h2>
+      <h2 class="section-title">One object. No account. No subscription.</h2>
 
       <div class="steps">
         <div class="step">
           <div class="step-num">01</div>
-          <h3>Tap to lock</h3>
-          <p>Hold your phone to the puck to start a focus session. The apps you've chosen go dark immediately.</p>
+          <h3>Pair, then start</h3>
+          <p>Tap the puck once to pair it. Pick the apps to block, and start a session on demand or on a daily schedule. They go dark immediately.</p>
         </div>
         <div class="step">
           <div class="step-num">02</div>
@@ -717,8 +737,8 @@
 
       <div class="spec-panel">
         <div class="spec-row"><span class="k">Diameter</span><span class="v">50 mm</span></div>
-        <div class="spec-row"><span class="k">Height</span><span class="v">9.5 mm assembled</span></div>
-        <div class="spec-row"><span class="k">NFC chip</span><span class="v">NTAG213, 144-byte NDEF</span></div>
+        <div class="spec-row"><span class="k">Height</span><span class="v">8.0 mm assembled</span></div>
+        <div class="spec-row"><span class="k">NFC chip</span><span class="v">Any NTAG — read by UID, not NDEF</span></div>
         <div class="spec-row"><span class="k">Lid mechanism</span><span class="v">Interference press-fit, no screws</span></div>
         <div class="spec-row"><span class="k">Recommended material</span><span class="v">PETG</span></div>
         <div class="spec-row"><span class="k">Material cost per unit</span><span class="v">Under $2</span></div>
@@ -734,8 +754,8 @@
       <div class="split-cta">
         <div class="cta-card">
           <h3>Print the files</h3>
-          <p>Full OpenSCAD source and a ready-to-slice 3MF. Every measurement is a parameter — tune it, remix it, print it in five minutes on any FDM printer.</p>
-          <a class="btn btn-primary" href="#">Download files →</a>
+          <p>Full OpenSCAD source and a ready-to-slice 3MF. Every measurement is a parameter — tune it, remix it, print it in about an hour on any FDM printer.</p>
+          <a class="btn btn-primary" href="https://github.com/srsuchard/Anchor">Download files →</a>
         </div>
         <div class="cta-card">
           <h3>Build-it-yourself kit</h3>
