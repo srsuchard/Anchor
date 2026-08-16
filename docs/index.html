@@ -544,6 +544,55 @@
 
   .cta-card .btn { margin-top: 20px; align-self: flex-start; }
 
+  /* ---------- waitlist form ---------- */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+  }
+
+  .waitlist-form { margin-top: 20px; }
+
+  .waitlist-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .waitlist-row input[type="email"] {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s;
+  }
+  .waitlist-row input[type="email"]::placeholder { color: var(--ink-faint); }
+  .waitlist-row input[type="email"]:focus {
+    outline: none;
+    border-color: var(--brass);
+  }
+
+  .waitlist-row .btn { margin-top: 0; white-space: nowrap; }
+
+  .waitlist-msg {
+    margin-top: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    min-height: 1.2em;
+  }
+  .waitlist-msg.success { color: var(--brass); }
+  .waitlist-msg.error { color: var(--oxide); }
+
+  @media (max-width: 420px) {
+    .waitlist-row { flex-direction: column; }
+  }
+
   /* ---------- footer ---------- */
   footer {
     border-top: 1px solid var(--line);
@@ -691,7 +740,22 @@
         <div class="cta-card">
           <h3>Build-it-yourself kit</h3>
           <p>Puck pre-printed, NFC tag already installed, a card with setup steps. You still build the app yourself in Xcode — that part's honest, and explained on arrival.</p>
-          <a class="btn btn-ghost" href="#">Join the waitlist →</a>
+
+          <form id="waitlistForm" class="waitlist-form" action="https://formspree.io/f/xdenldyr" method="POST">
+            <div class="waitlist-row">
+              <label for="waitlistEmail" class="sr-only">Email address</label>
+              <input
+                type="email"
+                id="waitlistEmail"
+                name="email"
+                placeholder="you@email.com"
+                required
+                autocomplete="email"
+              >
+              <button type="submit" class="btn btn-primary" id="waitlistSubmit">Join →</button>
+            </div>
+            <p class="waitlist-msg" id="waitlistMsg" aria-live="polite"></p>
+          </form>
         </div>
       </div>
     </div>
@@ -734,6 +798,50 @@
     pulseRing.classList.remove('animate');
     void pulseRing.offsetWidth;
     pulseRing.classList.add('animate');
+  });
+
+  // ---------- waitlist form (Formspree, no page reload) ----------
+  const waitlistForm = document.getElementById('waitlistForm');
+  const waitlistMsg = document.getElementById('waitlistMsg');
+  const waitlistSubmit = document.getElementById('waitlistSubmit');
+
+  waitlistForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const endpoint = waitlistForm.getAttribute('action');
+    if (endpoint.includes('YOUR_FORM_ID')) {
+      waitlistMsg.textContent = 'Form not connected yet — add your Formspree endpoint in the code.';
+      waitlistMsg.className = 'waitlist-msg error';
+      return;
+    }
+
+    waitlistSubmit.disabled = true;
+    waitlistSubmit.textContent = 'Sending…';
+    waitlistMsg.textContent = '';
+    waitlistMsg.className = 'waitlist-msg';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(waitlistForm),
+      });
+
+      if (response.ok) {
+        waitlistMsg.textContent = "You're on the list.";
+        waitlistMsg.className = 'waitlist-msg success';
+        waitlistForm.reset();
+      } else {
+        waitlistMsg.textContent = 'Something went wrong — try again.';
+        waitlistMsg.className = 'waitlist-msg error';
+      }
+    } catch (err) {
+      waitlistMsg.textContent = 'Network error — try again.';
+      waitlistMsg.className = 'waitlist-msg error';
+    } finally {
+      waitlistSubmit.disabled = false;
+      waitlistSubmit.textContent = 'Join →';
+    }
   });
 </script>
 
