@@ -18,11 +18,24 @@ enum AnchorStore {
         UserDefaults(suiteName: appGroupID) ?? .standard
 
     private enum Key {
+        static let pairedUIDs = "pairedPuckUIDs"
         static let selection = "blockedActivitySelection"
         static let isBlocking = "isBlocking"
         static let scheduleEnabled = "scheduleEnabled"
         static let scheduleStartHour = "scheduleStartHour"
         static let scheduleEndHour = "scheduleEndHour"
+    }
+
+    // MARK: - Paired tags
+
+    /// Every tag UID that can end a session.
+    ///
+    /// A set rather than a single value so a lost puck isn't a dead end: pair a
+    /// backup tag up front and it works too. Each NFC tag carries its own
+    /// factory UID, so a spare is useless unless it was paired deliberately.
+    static var pairedPuckUIDs: Set<String> {
+        get { Set(defaults.stringArray(forKey: Key.pairedUIDs) ?? []) }
+        set { defaults.set(newValue.sorted(), forKey: Key.pairedUIDs) }
     }
 
     // MARK: - What to block

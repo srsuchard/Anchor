@@ -3,9 +3,6 @@ import SwiftUI
 
 struct ContentView: View {
 
-    /// The puck's UID. Survives restarts — pairing is a one-time act.
-    @AppStorage("pairedPuckUID") private var pairedPuckUID: String = ""
-
     @StateObject private var blocker = FocusBlocker()
     @Environment(\.scenePhase) private var scenePhase
 
@@ -24,7 +21,7 @@ struct ContentView: View {
             Group {
                 switch blocker.authorizationStatus {
                 case .approved:
-                    if pairedPuckUID.isEmpty {
+                    if !blocker.hasPairedPuck {
                         pairingView
                     } else if blocker.isBlocking {
                         blockingView
@@ -92,7 +89,7 @@ struct ContentView: View {
             Text("Pair your puck")
                 .font(.title2.bold())
 
-            Text("Hold your phone to the puck. Anchor remembers it as the only thing that can unlock a focus session.")
+            Text("Hold your phone to the puck. Anchor remembers it as the thing that unlocks a focus session. You can add a backup tag afterwards.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -139,11 +136,7 @@ struct ContentView: View {
 
             scheduleSection
 
-            Button("Forget Paired Puck", role: .destructive) {
-                pairedPuckUID = ""
-                status = .idle
-            }
-            .font(.footnote)
+            pairedTagsSection
             Spacer()
         }
         .familyActivityPicker(isPresented: $isPickerPresented, selection: $blocker.selection)
@@ -172,6 +165,39 @@ struct ContentView: View {
                 .controlSize(.large)
             Spacer()
         }
+    }
+
+    // MARK: - Paired tags
+    //
+    // Reachable only from this screen, never while blocking. Pairing a tag
+    // mid-session would let any spare tag end the block on the spot.
+
+    private var pairedTagsSection: some View {
+        VStack(spacing: 8) {
+            Text("^[\(blocker.pairedUIDs.count) tag](inflect: true) paired")
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(.secondary)
+
+            ForEach(blocker.pairedUIDs.sorted(), id: \.self) { uid in
+                HStack {
+                    Text(uid)
+                        .font(.system(.caption, design: .monospaced))
+                    Spacer()
+                    Button("Remove", role: .destructive) { blocker.forget(uid) }
+                        .font(.caption)
+                        .buttonStyle(.borderless)
+                }
+            }
+
+            Button("Add Another Tag") { scan(intent: .pair) }
+                .font(.footnote)
+
+            Text("A backup tag means a lost puck isn't a dead end. Keep it somewhere you'd still have to walk to.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top, 12)
     }
 
     // MARK: - Daily schedule
@@ -245,10 +271,10 @@ struct ContentView: View {
                 case .success(let uid):
                     switch intent {
                     case .pair:
-                        pairedPuckUID = uid
+                        blocker.pair(uid)
                         status = .idle
                     case .unlock:
-                        if uid == pairedPuckUID {
+                        if blocker.isPaired(uid) {
                             blocker.stopBlocking()
                             status = .idle
                         } else {

@@ -26,6 +26,7 @@ final class FocusBlocker: ObservableObject {
         didSet { AnchorStore.selection = selection }
     }
 
+    @Published private(set) var pairedUIDs: Set<String>
     @Published private(set) var scheduleEnabled: Bool
     @Published var scheduleStartHour: Int { didSet { AnchorStore.scheduleStartHour = scheduleStartHour } }
     @Published var scheduleEndHour: Int { didSet { AnchorStore.scheduleEndHour = scheduleEndHour } }
@@ -34,9 +35,38 @@ final class FocusBlocker: ObservableObject {
         authorizationStatus = AuthorizationCenter.shared.authorizationStatus
         isBlocking = AnchorStore.isBlocking
         selection = AnchorStore.selection
+        pairedUIDs = AnchorStore.pairedPuckUIDs
         scheduleEnabled = AnchorStore.scheduleEnabled
         scheduleStartHour = AnchorStore.scheduleStartHour
         scheduleEndHour = AnchorStore.scheduleEndHour
+    }
+
+    // MARK: - Paired tags
+
+    var hasPairedPuck: Bool { !pairedUIDs.isEmpty }
+
+    /// Whether this tag can end a session.
+    func isPaired(_ uid: String) -> Bool { pairedUIDs.contains(uid) }
+
+    /// Adds a tag to the set that can unlock.
+    ///
+    /// Callers must not offer this while a session is running. Pairing a tag
+    /// mid-block would let any tag in a pocket end the session, which is the
+    /// bypass the whole device exists to prevent — see `ContentView`, where
+    /// pairing is reachable only from the idle screen.
+    func pair(_ uid: String) {
+        pairedUIDs.insert(uid)
+        AnchorStore.pairedPuckUIDs = pairedUIDs
+    }
+
+    func forget(_ uid: String) {
+        pairedUIDs.remove(uid)
+        AnchorStore.pairedPuckUIDs = pairedUIDs
+    }
+
+    func forgetAllPucks() {
+        pairedUIDs.removeAll()
+        AnchorStore.pairedPuckUIDs = pairedUIDs
     }
 
     /// True once the user has picked at least one app, category, or domain.
