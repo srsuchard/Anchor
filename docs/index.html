@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anchor — Built to be tapped.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #15171B;
+    --bg-panel: #1C1F24;
+    --bg-panel-raised: #22262C;
+    --ink: #ECE8DF;
+    --ink-dim: #9AA0AA;
+    --ink-faint: #5B616B;
+    --brass: #C9A227;
+    --brass-bright: #E0BC3E;
+    --oxide: #9A4A34;
+    --line: #2C3036;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; }
+
+  ::selection { background: var(--brass); color: var(--bg); }
+
+  :focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ---------- background texture ---------- */
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- nav ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(21, 23, 27, 0.86);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+  }
+
+  .logo-mark {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: conic-gradient(from 200deg, var(--brass), var(--brass-bright), var(--brass));
+    box-shadow: inset 0 0 0 3px var(--bg-panel);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    font-size: 0.9rem;
+    color: var(--ink-dim);
+  }
+
+  .nav-links a { text-decoration: none; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--ink); }
+
+  .nav-cta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    color: var(--bg);
+    background: var(--brass);
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .nav-cta:hover { background: var(--brass-bright); }
+
+  @media (max-width: 720px) {
+    .nav-links { display: none; }
+  }
+
+  /* ---------- eyebrow / spec labels ---------- */
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--brass);
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    z-index: 2;
+    padding: 96px 0 72px;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 56px;
+    align-items: center;
+  }
+
+  @media (max-width: 880px) {
+    .hero-grid { grid-template-columns: 1fr; }
+  }
+
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.6rem, 5.6vw, 4.4rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--brass);
+  }
+
+  .hero p.lede {
+    margin-top: 22px;
+    font-size: 1.1rem;
+    color: var(--ink-dim);
+    max-width: 46ch;
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 34px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    padding: 13px 22px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary { background: var(--brass); color: var(--bg); }
+  .btn-primary:hover { background: var(--brass-bright); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { border-color: var(--ink-faint); }
+
+  /* ---------- interactive demo (signature element) ---------- */
+  .demo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+  }
+
+  .demo-stage {
+    position: relative;
+    width: 240px;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .phone {
+    width: 190px;
+    height: 320px;
+    border-radius: 30px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+    transition: filter 0.4s ease;
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: 60px; height: 6px;
+    border-radius: 4px;
+    background: var(--line);
+  }
+
+  .phone-screen {
+    position: absolute;
+    inset: 28px 14px 14px 14px;
+    border-radius: 18px;
+    background: var(--bg-panel-raised);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    transition: background 0.4s ease;
+  }
+
+  .phone-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  .phone-count {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: color 0.3s;
+  }
+
+  .phone.locked .phone-screen { background: #171214; }
+  .phone.locked .phone-status { color: var(--oxide); }
+  .phone.locked .phone-count { color: var(--ink-faint); }
+
+  .lock-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 30px;
+    pointer-events: none;
+  }
+
+  .puck-holder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .puck-btn {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background:
+      radial-gradient(circle at 34% 28%, #34383F, #1A1D22 62%),
+      conic-gradient(from 0deg, #2A2E34, #1A1D22, #2A2E34);
+    box-shadow:
+      0 8px 18px rgba(0,0,0,0.45),
+      inset 0 0 0 1px var(--line),
+      inset 0 2px 3px rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease;
+  }
+  .puck-btn:hover { transform: translateY(-2px); }
+  .puck-btn:active { transform: translateY(1px) scale(0.97); }
+
+  .puck-btn::before {
+    content: '';
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid var(--brass);
+    opacity: 0.85;
+  }
+
+  .puck-btn::after {
+    content: '';
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--brass);
+    top: 16px;
+  }
+
+  .pulse-ring {
+    position: absolute;
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    border: 1.5px solid var(--brass);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pulse-ring.animate {
+    animation: pulseOut 0.7s ease-out;
+  }
+  @keyframes pulseOut {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0; transform: scale(2.4); }
+  }
+
+  .demo-caption {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    letter-spacing: 0.02em;
+  }
+  .demo-caption strong { color: var(--brass); font-weight: 500; }
+
+  /* ---------- section shell ---------- */
+  section { position: relative; z-index: 2; }
+
+  .section-pad { padding: 88px 0; border-top: 1px solid var(--line); }
+
+  h2.section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+    letter-spacing: -0.01em;
+    max-width: 22ch;
+  }
+
+  .section-lede {
+    margin-top: 16px;
+    color: var(--ink-dim);
+    max-width: 58ch;
+    font-size: 1.02rem;
+  }
+
+  /* ---------- problem ---------- */
+  .problem-grid {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  @media (max-width: 720px) {
+    .problem-grid { grid-template-columns: 1fr; }
+  }
+
+  .problem-cell {
+    background: var(--bg-panel);
+    padding: 32px;
+  }
+
+  .problem-cell .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  .tag-soft { background: rgba(154, 74, 52, 0.15); color: var(--oxide); }
+  .tag-hard { background: rgba(201, 162, 39, 0.14); color: var(--brass); }
+
+  .problem-cell h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    margin-top: 16px;
+    font-weight: 600;
+  }
+
+  .problem-cell p {
+    margin-top: 10px;
+    color: var(--ink-dim);
+    font-size: 0.96rem;
+  }
+
+  /* ---------- how it works ---------- */
+  .steps {
+    margin-top: 52px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  @media (max-width: 820px) {
+    .steps { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  .step {
+    position: relative;
+    padding-top: 28px;
+  }
+
+  .step-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--brass);
+    letter-spacing: 0.04em;
+  }
+
+  .step h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+
+  .step p {
+    margin-top: 8px;
+    color: var(--ink-dim);
+    font-size: 0.95rem;
+  }
+
+  .steps::before { content: none; }
+
+  /* ---------- spec sheet ---------- */
+  .spec-panel {
+    margin-top: 48px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .spec-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.88rem;
+  }
+  .spec-row:last-child { border-bottom: none; }
+
+  .spec-row .k { color: var(--ink-dim); }
+  .spec-row .v { color: var(--ink); text-align: right; }
+
+  @media (max-width: 560px) {
+    .spec-row { grid-template-columns: 1fr; gap: 4px; }
+    .spec-row .v { text-align: left; color: var(--brass); }
+  }
+
+  /* ---------- open source / kit ---------- */
+  .split-cta {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 720px) {
+    .split-cta { grid-template-columns: 1fr; }
+  }
+
+  .cta-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cta-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .cta-card p {
+    margin-top: 10px;
+    color: var(--ink-dim);
+    font-size: 0.95rem;
+    flex-grow: 1;
+  }
+
+  .cta-card .btn { margin-top: 20px; align-self: flex-start; }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 40px 0;
+  }
+
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header>
+  <nav>
+    <div class="logo"><span class="logo-mark"></span> Anchor</div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#specs">Specs</a>
+      <a href="#build">Build one</a>
+    </div>
+    <a class="nav-cta" href="#build">Get the files →</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Open-source · 3D-printed · NFC</p>
+        <h1>Built to be<br><em>tapped.</em></h1>
+        <p class="lede">Anchor is a printable puck that locks distracting apps until you physically tap your phone to it again. No setting to toggle off. No app to delete. The only way out is the object in your hand.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#build">Get the print files</a>
+          <a class="btn btn-ghost" href="#how">See how it works</a>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-stage">
+          <div class="phone" id="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="phone-status" id="phoneStatus">Unlocked</div>
+              <div class="phone-count" id="phoneCount">12 apps<br>available</div>
+            </div>
+          </div>
+        </div>
+        <div class="puck-holder">
+          <button class="puck-btn" id="puckBtn" aria-pressed="false" aria-label="Tap the puck to lock or unlock the phone">
+            <span class="pulse-ring" id="pulseRing"></span>
+          </button>
+          <p class="demo-caption">Tap the puck to <strong id="demoVerb">lock</strong></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-pad" id="problem">
+    <div class="wrap">
+      <p class="eyebrow">The problem</p>
+      <h2 class="section-title">Software limits are optional. That's the whole issue.</h2>
+      <p class="section-lede">Screen time settings live inside the same device you're trying to put down. Three taps and a PIN, and the limit is gone. The friction was never real — it was just another menu.</p>
+
+      <div class="problem-grid">
+        <div class="problem-cell">
+          <span class="tag tag-soft">Digital limit</span>
+          <h3>Turn it off in the settings app</h3>
+          <p>Screen Time, Digital Wellbeing, third-party blockers — all live on the device they're supposed to restrict. Removing them costs a few taps and a moment of willpower you were already low on.</p>
+        </div>
+        <div class="problem-cell">
+          <span class="tag tag-hard">Physical friction</span>
+          <h3>Get up and find the puck</h3>
+          <p>Anchor's lock only lifts at the object itself. Getting around it means physically standing up, walking to where you left it, and tapping — a real pause, not a dialog box.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-pad" id="how">
+    <div class="wrap">
+      <p class="eyebrow">How it works</p>
+      <h2 class="section-title">Three taps. One object. No account required.</h2>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Tap to lock</h3>
+          <p>Hold your phone to the puck to start a focus session. The apps you've chosen go dark immediately.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Walk away</h3>
+          <p>The puck stays wherever you left it — another room, a locker, a friend's desk. The lock travels with the object, not the app.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Tap to unlock</h3>
+          <p>Only the paired puck's unique chip ID lifts the block. Any other tag, or no tag at all, does nothing.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-pad" id="specs">
+    <div class="wrap">
+      <p class="eyebrow">What's inside</p>
+      <h2 class="section-title">A parametric design, not a fixed product.</h2>
+      <p class="section-lede">Every dimension lives in an OpenSCAD file. Change the diameter, the fit tolerance, the mount — it's yours to tune for your printer.</p>
+
+      <div class="spec-panel">
+        <div class="spec-row"><span class="k">Diameter</span><span class="v">50 mm</span></div>
+        <div class="spec-row"><span class="k">Height</span><span class="v">9.5 mm assembled</span></div>
+        <div class="spec-row"><span class="k">NFC chip</span><span class="v">NTAG213, 144-byte NDEF</span></div>
+        <div class="spec-row"><span class="k">Lid mechanism</span><span class="v">Interference press-fit, no screws</span></div>
+        <div class="spec-row"><span class="k">Recommended material</span><span class="v">PETG</span></div>
+        <div class="spec-row"><span class="k">Material cost per unit</span><span class="v">Under $2</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-pad" id="build">
+    <div class="wrap">
+      <p class="eyebrow">Build one</p>
+      <h2 class="section-title">Print it yourself, or wait for a kit.</h2>
+
+      <div class="split-cta">
+        <div class="cta-card">
+          <h3>Print the files</h3>
+          <p>Full OpenSCAD source and a ready-to-slice 3MF. Every measurement is a parameter — tune it, remix it, print it in five minutes on any FDM printer.</p>
+          <a class="btn btn-primary" href="#">Download files →</a>
+        </div>
+        <div class="cta-card">
+          <h3>Build-it-yourself kit</h3>
+          <p>Puck pre-printed, NFC tag already installed, a card with setup steps. You still build the app yourself in Xcode — that part's honest, and explained on arrival.</p>
+          <a class="btn btn-ghost" href="#">Join the waitlist →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div class="footer-note">Anchor — designed and printed by one maker who wanted a better lock than the App Store had.</div>
+    <div class="footer-note">Rev 01</div>
+  </div>
+</footer>
+
+<script>
+  const puckBtn = document.getElementById('puckBtn');
+  const phone = document.getElementById('phone');
+  const phoneStatus = document.getElementById('phoneStatus');
+  const phoneCount = document.getElementById('phoneCount');
+  const demoVerb = document.getElementById('demoVerb');
+  const pulseRing = document.getElementById('pulseRing');
+
+  let locked = false;
+
+  puckBtn.addEventListener('click', () => {
+    locked = !locked;
+
+    phone.classList.toggle('locked', locked);
+    puckBtn.setAttribute('aria-pressed', String(locked));
+
+    if (locked) {
+      phoneStatus.textContent = 'Locked';
+      phoneCount.innerHTML = '12 apps<br>blocked';
+      demoVerb.textContent = 'unlock';
+    } else {
+      phoneStatus.textContent = 'Unlocked';
+      phoneCount.innerHTML = '12 apps<br>available';
+      demoVerb.textContent = 'lock';
+    }
+
+    pulseRing.classList.remove('animate');
+    void pulseRing.offsetWidth;
+    pulseRing.classList.add('animate');
+  });
+</script>
+
+</body>
+</html>

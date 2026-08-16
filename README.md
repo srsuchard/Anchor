@@ -96,19 +96,26 @@ exactly one place.
 
 ## Hardware
 
-A passive NFC tag in a two-piece snap-fit housing.
+A passive NFC tag in a two-piece printed housing, 50 mm across and 8 mm tall
+assembled.
 
 | Part | Notes |
 | --- | --- |
 | NFC tag | NTAG213/215/216, 25 mm disc or sticker |
-| Filament | Any. PLA is fine; the part carries no load |
+| Magnet | Optional 10 × 2 mm N35 disc, offset from center |
+| Filament | PLA or PETG; the part carries no load |
 | Print | ~0.2 mm layers, 20% infill, no supports |
+
+Anchor reads the tag's factory-burned UID, not its NDEF contents, so tag storage
+capacity is irrelevant — any NTAG will do.
 
 Do not put the tag behind metal, and don't embed it in a part you print *around* —
 NFC needs a clear path to the phone, and printing over a tag risks heat damage.
-Drop it in after printing and snap the lid on.
+Drop it in after printing and press the lid on.
 
-See `hardware/` for the parametric source and its current status.
+`hardware/` holds the OpenSCAD source, exported STL and 3MF, measured
+dimensions, and a list of known issues in the model worth reading before you
+remix it.
 
 ## Design decisions
 

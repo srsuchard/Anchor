@@ -1,105 +1,115 @@
-// Anchor puck — parametric two-piece snap-fit enclosure
-//
-// STATUS: starting template, not a reproduction of any printed part.
-// Every dimension below is a reasonable default, not a measured one. Reconcile
-// these with a puck you have actually printed and fitted before treating them
-// as correct. See README.md in this folder.
-//
-// Print: ~0.2 mm layers, 20% infill, no supports. Base prints as-is; the lid is
-// laid out upside down by the "print" layout so its top face is on the bed.
-//
-// Drop the tag in after printing. Do not print over it — NFC needs a clear path
-// to the phone, and a hot nozzle over a tag risks damaging it.
+// =====================================================
+// ANCHOR — Tap-to-Lock Focus Puck
+// Parametric two-piece snap-fit enclosure
+// Print in PLA or PETG, no supports needed
+// =====================================================
 
-/* [Enclosure] */
-puck_d        = 40;    // outer diameter
-base_h        = 8;     // height of the base cup
-lid_plate_t   = 1.6;   // thickness of the lid's top face
-wall          = 2.4;   // side wall thickness
-floor_t       = 2.4;   // base floor thickness, tag pocket included
+// ---------- PARAMETERS (edit these to tune the fit) ----------
 
-/* [Tag] */
-tag_d         = 25.4;  // 25 mm disc tags measure a little over
-tag_t         = 1.0;   // sticker + backing
-tag_slop      = 0.4;   // pocket oversize, diametral
-tag_pocket_t  = 1.2;   // recess depth into the floor
+// Overall puck size
+puck_diameter   = 50;      // outer diameter, mm
+wall_thickness  = 2;       // outer wall thickness, mm
+base_height     = 6;       // base tray height, mm
+lid_height      = 3.5;     // lid height, mm
 
-/* [Snap fit] */
-fit_clearance = 0.25;  // skirt-to-cavity gap; the number to tune first
-skirt_h       = 4.0;   // how far the lid reaches into the base
-skirt_wall    = 1.4;
-bead_r        = 0.5;   // snap bead radius; smaller = easier to open
+// NFC tag pocket (sized for a 25mm "coin" NFC tag ~1mm thick,
+// e.g. NTAG213/215 hard tag — adjust if using a thin adhesive sticker)
+nfc_diameter    = 25.5;    // pocket diameter, mm (0.5mm clearance over 25mm tag)
+nfc_depth       = 1.3;     // pocket depth, mm (tag thickness + 0.3mm clearance)
+nfc_floor       = 1.6;     // plastic remaining above tag for a clean top surface, mm
 
-/* [Output] */
-// "base", "lid", or "print" for both laid out for the bed
-part          = "print";
-part_gap      = 6;
+// Magnet pocket (10mm x 2mm N35 disc magnet), offset from center
+// so it doesn't sit directly behind the NFC tag and kill read range
+magnet_diameter = 10.3;    // pocket diameter, mm (0.3mm clearance)
+magnet_depth    = 2.2;     // pocket depth, mm
+magnet_offset   = 17;      // distance from puck center to magnet pocket center, mm
+include_magnet  = true;    // set false to skip the magnet pocket entirely
 
-$fn = 128;
+// Snap-fit lip
+lip_height      = 1.5;     // height of the snap bump, mm
+lip_protrusion  = 0.6;     // how far the bump sticks out, mm
+fit_clearance   = 0.25;    // radial clearance between base wall and lid wall, mm
 
-// ---- Derived ---------------------------------------------------------------
+// Rendering
+$fn = 100;                 // smoothness of circles
 
-cavity_d = puck_d - 2 * wall;
-skirt_od = cavity_d - 2 * fit_clearance;
-skirt_id = skirt_od - 2 * skirt_wall;
+// ---------- DERIVED VALUES ----------
 
-// Bead sits near the free end of the skirt so it clears the groove on the way
-// in and catches on the way out.
-bead_z   = base_h - skirt_h + bead_r + 0.5;
+outer_r   = puck_diameter / 2;
+inner_r   = outer_r - wall_thickness;         // inner cavity radius of base
+lid_wall_r_outer = inner_r - fit_clearance;   // lid's skirt sits just inside base wall
+lid_wall_r_inner = lid_wall_r_outer - wall_thickness*0.7;
 
-// ---- Parts -----------------------------------------------------------------
-
-module snap_ring(radius, z) {
-    translate([0, 0, z])
-        rotate_extrude()
-            translate([radius, 0])
-                circle(r = bead_r);
-}
-
-module base() {
+// =====================================================
+// BASE TRAY (bottom half — holds the NFC tag + magnet)
+// =====================================================
+module base_tray() {
     difference() {
-        cylinder(d = puck_d, h = base_h);
+        union() {
+            // outer shell
+            cylinder(h = base_height, r = outer_r);
 
-        // Interior cavity, open at the top.
-        translate([0, 0, floor_t])
-            cylinder(d = cavity_d, h = base_h);
+            // snap-fit bump ring near the top of the outer wall
+            translate([0, 0, base_height - lip_height])
+                difference() {
+                    cylinder(h = lip_height, r = outer_r - wall_thickness/2 + lip_protrusion);
+                    cylinder(h = lip_height, r = outer_r - wall_thickness/2);
+                }
+        }
 
-        // Shallow recess that locates the tag and keeps it off the walls.
-        translate([0, 0, floor_t - tag_pocket_t])
-            cylinder(d = tag_d + tag_slop, h = tag_pocket_t + 0.01);
+        // hollow out the interior cavity
+        translate([0, 0, wall_thickness])
+            cylinder(h = base_height, r = inner_r);
 
-        // Groove the lid's bead snaps into.
-        snap_ring(cavity_d / 2, bead_z);
+        // NFC tag pocket, centered, recessed from the top face
+        translate([0, 0, base_height - nfc_floor - nfc_depth])
+            cylinder(h = nfc_depth + 1, r = nfc_diameter / 2);
+
+        // magnet pocket, offset to the side, recessed from the bottom
+        if (include_magnet) {
+            translate([magnet_offset, 0, -1])
+                cylinder(h = magnet_depth + 1, r = magnet_diameter / 2);
+        }
     }
 }
 
+// =====================================================
+// LID (top half — snaps onto the base)
+// =====================================================
 module lid() {
-    union() {
-        cylinder(d = puck_d, h = lid_plate_t);
+    difference() {
+        union() {
+            // top disc
+            cylinder(h = wall_thickness, r = outer_r);
 
-        // Skirt hangs below the plate and into the base cavity.
-        translate([0, 0, -skirt_h])
+            // skirt that slides inside the base wall and snaps past the lip
+            translate([0, 0, -(lid_height - wall_thickness)])
+                difference() {
+                    cylinder(h = lid_height, r = lid_wall_r_outer);
+                    cylinder(h = lid_height, r = lid_wall_r_inner);
+                }
+        }
+
+        // groove cut into the inside of the skirt so it clicks over the base's bump
+        translate([0, 0, -(lid_height - wall_thickness) + 1])
             difference() {
-                cylinder(d = skirt_od, h = skirt_h);
-                translate([0, 0, -0.01])
-                    cylinder(d = skirt_id, h = skirt_h + 0.02);
+                cylinder(h = lip_height + 0.4, r = lid_wall_r_outer + 0.4);
+                cylinder(h = lip_height + 0.4, r = lid_wall_r_outer - lip_protrusion - 0.2);
             }
-
-        snap_ring(skirt_od / 2, bead_z - base_h);
     }
 }
 
-// ---- Layout ----------------------------------------------------------------
+// =====================================================
+// LAYOUT — printable orientation, both parts flat on the bed
+// =====================================================
+base_tray();
 
-if (part == "base") {
-    base();
-} else if (part == "lid") {
-    lid();
-} else {
-    base();
-    // Flip the lid so its flat top face lands on the bed.
-    translate([puck_d + part_gap, 0, 0])
-        rotate([180, 0, 0])
-            translate([0, 0, -lid_plate_t])
-                lid();
-}
+translate([puck_diameter + 10, 0, lid_height - wall_thickness])
+    rotate([180, 0, 0])
+        lid();
+
+// To preview the assembled puck instead, comment out the two lines above
+// and uncomment the block below:
+//
+// base_tray();
+// translate([0, 0, base_height - lip_height + 0.2]) lid();
