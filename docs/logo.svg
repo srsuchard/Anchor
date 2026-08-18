@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-label="Anchor" style="color:#C9A227">
+  <title>Anchor</title>
+  <!-- The puck, seen face on. -->
+  <circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- The tag inside it, emitting. Contactless arcs open to the right so the
+       mark reads as a tap rather than a target. -->
+  <circle cx="20" cy="32" r="5" fill="currentColor"/>
+  <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">
+    <path d="M25.83 22.67 A11 11 0 0 1 25.83 41.33"/>
+    <path d="M29.54 16.74 A18 18 0 0 1 29.54 47.26"/>
+    <path d="M33.25 10.80 A25 25 0 0 1 33.25 53.20"/>
+  </g>
+</svg>
