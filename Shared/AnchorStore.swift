@@ -14,7 +14,9 @@ enum AnchorStore {
     /// all three .entitlements files together, or writes silently go nowhere.
     static let appGroupID = "group.com.example.Anchor"
 
-    static let defaults: UserDefaults =
+    /// A `var` so tests can point this at a throwaway suite. Nothing in the app
+    /// or its extensions should ever reassign it.
+    static var defaults: UserDefaults =
         UserDefaults(suiteName: appGroupID) ?? .standard
 
     private enum Key {

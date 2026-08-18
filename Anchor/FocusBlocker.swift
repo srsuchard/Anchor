@@ -96,11 +96,15 @@ final class FocusBlocker: ObservableObject {
         // without telling us, so a stored isBlocking would outlive the block it
         // describes — the UI would insist a session was running while nothing
         // was actually shielded, and the puck tap would be theatre.
-        if authorizationStatus != .approved, AnchorStore.isBlocking {
-            AnchorStore.isBlocking = false
+        let reconciled = SessionRules.reconciledBlocking(
+            stored: AnchorStore.isBlocking,
+            authorization: authorizationStatus
+        )
+        if reconciled != AnchorStore.isBlocking {
+            AnchorStore.isBlocking = reconciled
         }
 
-        isBlocking = AnchorStore.isBlocking
+        isBlocking = reconciled
     }
 
     // MARK: - Authorization
@@ -121,7 +125,11 @@ final class FocusBlocker: ObservableObject {
     // MARK: - Manual sessions
 
     func startBlocking() {
-        guard hasSelection, authorizationStatus == .approved else { return }
+        guard SessionRules.canStartSession(
+            hasSelection: hasSelection,
+            authorization: authorizationStatus
+        ) else { return }
+
         shields.apply(selection)
         isBlocking = true
     }
@@ -139,14 +147,21 @@ final class FocusBlocker: ObservableObject {
     /// extension applies and lifts the block at the boundaries, with no help
     /// from the app.
     func enableSchedule() {
-        guard hasSelection, authorizationStatus == .approved else { return }
+        guard SessionRules.canStartSession(
+            hasSelection: hasSelection,
+            authorization: authorizationStatus
+        ) else { return }
 
-        // Checked here rather than inferred from a thrown error, so the message
-        // below can stop claiming a cause it does not actually know.
-        guard scheduleStartHour != scheduleEndHour else {
+        switch SessionRules.validateSchedule(
+            startHour: scheduleStartHour,
+            endHour: scheduleEndHour
+        ) {
+        case .sameStartAndEnd:
             setScheduleEnabled(false)
             scheduleError = "Start and end can't be the same time."
             return
+        case .valid:
+            break
         }
 
         let schedule = DeviceActivitySchedule(

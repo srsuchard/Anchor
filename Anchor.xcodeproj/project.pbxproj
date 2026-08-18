@@ -47,6 +47,7 @@
 		AA0000000000000000000003 /* Anchor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Anchor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000011 /* AnchorShield.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AnchorShield.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000021 /* AnchorMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AnchorMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC0000000000000000000002 /* AnchorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnchorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -67,7 +68,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		AA0000000000000000000004 /* Anchor */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Anchor; sourceTree = "<group>"; };
+		AA0000000000000000000004 /* Anchor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Anchor;
+			sourceTree = "<group>";
+		};
 		AA0000000000000000000012 /* AnchorShield */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -84,7 +89,12 @@
 			path = AnchorMonitor;
 			sourceTree = "<group>";
 		};
-		AA000000000000000000002D /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Shared; sourceTree = "<group>"; };
+		AA000000000000000000002D /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		CC0000000000000000000003 /* AnchorTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = AnchorTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +119,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CC0000000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -119,6 +136,7 @@
 				AA0000000000000000000012 /* AnchorShield */,
 				AA0000000000000000000022 /* AnchorMonitor */,
 				AA000000000000000000002D /* Shared */,
+				CC0000000000000000000003 /* AnchorTests */,
 				AA0000000000000000000006 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -129,6 +147,7 @@
 				AA0000000000000000000003 /* Anchor.app */,
 				AA0000000000000000000011 /* AnchorShield.appex */,
 				AA0000000000000000000021 /* AnchorMonitor.appex */,
+				CC0000000000000000000002 /* AnchorTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -207,6 +226,29 @@
 			productReference = AA0000000000000000000021 /* AnchorMonitor.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		CC0000000000000000000001 /* AnchorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC0000000000000000000007 /* Build configuration list for PBXNativeTarget "AnchorTests" */;
+			buildPhases = (
+				CC0000000000000000000004 /* Sources */,
+				CC0000000000000000000005 /* Frameworks */,
+				CC0000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				CC0000000000000000000003 /* AnchorTests */,
+				AA000000000000000000002D /* Shared */,
+			);
+			name = AnchorTests;
+			packageProductDependencies = (
+			);
+			productName = AnchorTests;
+			productReference = CC0000000000000000000002 /* AnchorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -224,6 +266,9 @@
 						CreatedOnToolsVersion = 26.6;
 					};
 					AA0000000000000000000020 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					CC0000000000000000000001 = {
 						CreatedOnToolsVersion = 26.6;
 					};
 				};
@@ -245,6 +290,7 @@
 				AA0000000000000000000002 /* Anchor */,
 				AA0000000000000000000010 /* AnchorShield */,
 				AA0000000000000000000020 /* AnchorMonitor */,
+				CC0000000000000000000001 /* AnchorTests */,
 			);
 		};
 /* End PBXProject section */
@@ -271,6 +317,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CC0000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -289,6 +342,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AA0000000000000000000023 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CC0000000000000000000004 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -532,6 +592,46 @@
 			};
 			name = Release;
 		};
+		CC0000000000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.AnchorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		CC0000000000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.AnchorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -567,6 +667,15 @@
 			buildConfigurations = (
 				AA0000000000000000000027 /* Debug */,
 				AA0000000000000000000028 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC0000000000000000000007 /* Build configuration list for PBXNativeTarget "AnchorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC0000000000000000000008 /* Debug */,
+				CC0000000000000000000009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
