@@ -28,8 +28,19 @@ final class FocusBlocker: ObservableObject {
 
     @Published private(set) var pairedUIDs: Set<String>
     @Published private(set) var scheduleEnabled: Bool
-    @Published var scheduleStartHour: Int { didSet { AnchorStore.scheduleStartHour = scheduleStartHour } }
-    @Published var scheduleEndHour: Int { didSet { AnchorStore.scheduleEndHour = scheduleEndHour } }
+    @Published var scheduleStartHour: Int {
+        didSet {
+            AnchorStore.scheduleStartHour = scheduleStartHour
+            rescheduleIfEnabled()
+        }
+    }
+
+    @Published var scheduleEndHour: Int {
+        didSet {
+            AnchorStore.scheduleEndHour = scheduleEndHour
+            rescheduleIfEnabled()
+        }
+    }
 
     init() {
         authorizationStatus = AuthorizationCenter.shared.authorizationStatus
@@ -80,7 +91,20 @@ final class FocusBlocker: ObservableObject {
     /// app re-reads shared state whenever it comes back to the foreground.
     func refreshFromSharedState() {
         authorizationStatus = AuthorizationCenter.shared.authorizationStatus
-        isBlocking = AnchorStore.isBlocking
+
+        // Revoking Screen Time access in Settings tears the restrictions down
+        // without telling us, so a stored isBlocking would outlive the block it
+        // describes — the UI would insist a session was running while nothing
+        // was actually shielded, and the puck tap would be theatre.
+        let reconciled = SessionRules.reconciledBlocking(
+            stored: AnchorStore.isBlocking,
+            authorization: authorizationStatus
+        )
+        if reconciled != AnchorStore.isBlocking {
+            AnchorStore.isBlocking = reconciled
+        }
+
+        isBlocking = reconciled
     }
 
     // MARK: - Authorization
@@ -101,7 +125,11 @@ final class FocusBlocker: ObservableObject {
     // MARK: - Manual sessions
 
     func startBlocking() {
-        guard hasSelection else { return }
+        guard SessionRules.canStartSession(
+            hasSelection: hasSelection,
+            authorization: authorizationStatus
+        ) else { return }
+
         shields.apply(selection)
         isBlocking = true
     }
@@ -119,7 +147,22 @@ final class FocusBlocker: ObservableObject {
     /// extension applies and lifts the block at the boundaries, with no help
     /// from the app.
     func enableSchedule() {
-        guard hasSelection else { return }
+        guard SessionRules.canStartSession(
+            hasSelection: hasSelection,
+            authorization: authorizationStatus
+        ) else { return }
+
+        switch SessionRules.validateSchedule(
+            startHour: scheduleStartHour,
+            endHour: scheduleEndHour
+        ) {
+        case .sameStartAndEnd:
+            setScheduleEnabled(false)
+            scheduleError = "Start and end can't be the same time."
+            return
+        case .valid:
+            break
+        }
 
         let schedule = DeviceActivitySchedule(
             intervalStart: DateComponents(hour: scheduleStartHour, minute: 0),
@@ -134,8 +177,18 @@ final class FocusBlocker: ObservableObject {
             scheduleError = nil
         } catch {
             setScheduleEnabled(false)
-            scheduleError = "Couldn't set that schedule. Start and end can't be the same time."
+            scheduleError = "Couldn't set that schedule."
         }
+    }
+
+    /// Re-registers a live schedule after its hours change.
+    ///
+    /// Without this the picker and the system silently disagree: the UI reads
+    /// "9 to 5" while iOS still enforces whatever window was registered when the
+    /// toggle was first flipped.
+    private func rescheduleIfEnabled() {
+        guard scheduleEnabled else { return }
+        enableSchedule()
     }
 
     /// Stops future scheduled sessions. Deliberately does not lift a block that
